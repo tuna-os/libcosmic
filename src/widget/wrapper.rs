@@ -30,8 +30,12 @@ impl<T> Clone for RcWrapper<T> {
     }
 }
 
-unsafe impl<M: 'static> Send for RcWrapper<M> {}
-unsafe impl<M: 'static> Sync for RcWrapper<M> {}
+// RcWrapper is NOT Send or Sync because it contains Rc<RefCell<T>>.
+// Rc is neither Send nor Sync, and the runtime thread_id check does not
+// make it safe to cross thread boundaries. Use Arc<Mutex<T>> for thread-safe sharing.
+// Commented out the unsound impls:
+// unsafe impl<M: 'static> Send for RcWrapper<M> {}
+// unsafe impl<M: 'static> Sync for RcWrapper<M> {}
 
 impl<T> RcWrapper<T> {
     pub fn new(element: T) -> Self {
