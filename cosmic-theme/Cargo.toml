@@ -11,7 +11,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 default = ["export"]
-export = ["serde_json"]
+export = ["serde_json", "dep:tempfile"]
 no-default = []
 
 [dependencies]
@@ -31,6 +31,7 @@ cosmic-config = { path = "../cosmic-config/", default-features = false, features
 configparser = "3.1.0"
 dirs.workspace = true
 thiserror.workspace = true
+tempfile = { version = "3.27.0", optional = true }
 
 [dev-dependencies]
 insta = "1.47.2"

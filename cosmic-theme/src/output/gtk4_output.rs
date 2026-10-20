@@ -3,12 +3,12 @@ use crate::steps::steps;
 use crate::{Component, Theme};
 use palette::rgb::Rgba;
 use palette::{Darken, IntoColor, Lighten, Srgba, WithAlpha};
-use std::fs::{self, File};
-use std::io::{self, Write};
+use std::fs;
+use std::io;
 use std::num::NonZeroUsize;
 use std::path::Path;
 
-use super::{OutputError, to_rgba};
+use super::{OutputError, to_rgba, write_atomically};
 
 impl Theme {
     #[must_use]
@@ -165,18 +165,7 @@ impl Theme {
         }
 
         let file_path = config_dir.join(name);
-        let tmp_file_path = config_dir.join(name.to_owned() + "~");
-
-        // Write to tmp_file_path first, then move it to file_path
-        let mut tmp_file = File::create(&tmp_file_path).map_err(OutputError::Io)?;
-        let res = tmp_file
-            .write_all(css_str.as_bytes())
-            .and_then(|_| tmp_file.flush())
-            .and_then(|_| std::fs::rename(&tmp_file_path, file_path));
-        if let Err(e) = res {
-            _ = std::fs::remove_file(&tmp_file_path);
-            return Err(OutputError::Io(e));
-        }
+        write_atomically(&file_path, css_str.as_bytes()).map_err(OutputError::Io)?;
 
         Ok(())
     }
