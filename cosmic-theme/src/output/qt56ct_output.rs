@@ -3,8 +3,9 @@ use configparser::ini::Ini;
 use palette::blend::Compose;
 use palette::rgb::Rgba;
 use palette::{Mix, Srgba, WithAlpha};
+use std::fs::{self, File};
 use std::path::PathBuf;
-use std::{fs, vec};
+use std::vec;
 
 use super::{OutputError, qt_settings_ini_style, write_atomically};
 
