@@ -3,10 +3,9 @@ use crate::steps::steps;
 use crate::{Component, Theme};
 use palette::rgb::Rgba;
 use palette::{Darken, IntoColor, Lighten, Srgba, WithAlpha};
-use std::fs;
-use std::io;
 use std::num::NonZeroUsize;
 use std::path::Path;
+use std::{fs, io};
 
 use super::{OutputError, to_rgba, write_atomically};
 

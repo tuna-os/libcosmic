@@ -4,12 +4,20 @@ use tempfile::Builder;
 
 fn write_atomically(path: &Path, contents: &[u8]) -> Result<(), std::io::Error> {
     let parent = path.parent().ok_or_else(|| {
-        std::io::Error::new(std::io::ErrorKind::InvalidInput, "output path has no parent")
+        std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            "output path has no parent",
+        )
     })?;
-    let mut temporary = Builder::new().prefix(".cosmic-theme-").tempfile_in(parent)?;
+    let mut temporary = Builder::new()
+        .prefix(".cosmic-theme-")
+        .tempfile_in(parent)?;
     temporary.write_all(contents)?;
     temporary.flush()?;
-    temporary.persist(path).map(|_| ()).map_err(|error| error.error)
+    temporary
+        .persist(path)
+        .map(|_| ())
+        .map_err(|error| error.error)
 }
 
 #[cfg(test)]
