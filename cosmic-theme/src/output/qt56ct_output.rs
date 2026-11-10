@@ -4,11 +4,10 @@ use palette::blend::Compose;
 use palette::rgb::Rgba;
 use palette::{Mix, Srgba, WithAlpha};
 use std::fs::{self, File};
-use std::io::Write;
 use std::path::PathBuf;
 use std::vec;
 
-use super::{OutputError, qt_settings_ini_style};
+use super::{OutputError, qt_settings_ini_style, write_atomically};
 
 impl Theme {
     /// The "version" of this theme.
@@ -114,17 +113,7 @@ inactive_colors={}
     #[cold]
     fn write_ct(&self, ct: &str, qpalette: &str) -> Result<(), OutputError> {
         let file_path = Self::get_qpalette_path(ct, self.is_dark)?;
-        let tmp_file_path = file_path.with_extension("conf.new");
-
-        let mut tmp_file = File::create(&tmp_file_path).map_err(OutputError::Io)?;
-        let res = tmp_file
-            .write_all(qpalette.as_bytes())
-            .and_then(|_| tmp_file.flush())
-            .and_then(|_| std::fs::rename(&tmp_file_path, file_path));
-        if let Err(e) = res {
-            _ = std::fs::remove_file(&tmp_file_path);
-            return Err(OutputError::Io(e));
-        }
+        write_atomically(&file_path, qpalette.as_bytes()).map_err(OutputError::Io)?;
 
         Ok(())
     }

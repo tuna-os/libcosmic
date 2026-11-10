@@ -1,3 +1,48 @@
+use std::io::Write;
+use std::path::Path;
+use tempfile::Builder;
+
+fn write_atomically(path: &Path, contents: &[u8]) -> Result<(), std::io::Error> {
+    let parent = path.parent().ok_or_else(|| {
+        std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            "output path has no parent",
+        )
+    })?;
+    let mut temporary = Builder::new()
+        .prefix(".cosmic-theme-")
+        .tempfile_in(parent)?;
+    temporary.write_all(contents)?;
+    temporary.flush()?;
+    temporary
+        .persist(path)
+        .map(|_| ())
+        .map_err(|error| error.error)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::write_atomically;
+    use std::fs;
+
+    #[cfg(unix)]
+    #[test]
+    fn atomic_write_replaces_symlink_without_following_it() {
+        use std::os::unix::fs::symlink;
+
+        let directory = tempfile::tempdir().expect("temporary directory");
+        let target = directory.path().join("target");
+        let output = directory.path().join("output");
+        fs::write(&target, b"original").expect("target contents");
+        symlink(&target, &output).expect("output symlink");
+
+        write_atomically(&output, b"replacement").expect("atomic write");
+
+        assert_eq!(fs::read(&target).expect("target read"), b"original");
+        assert_eq!(fs::read(&output).expect("output read"), b"replacement");
+    }
+}
+
 use configparser::ini::WriteOptions;
 use palette::Srgba;
 use palette::rgb::Rgba;
