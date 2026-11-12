@@ -9,17 +9,22 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+permissions: {}
+
 jobs:
   pages:
     runs-on: ubuntu-latest
+    # actions-gh-pages pushes the docs to the gh-pages branch.
+    permissions:
+      contents: write
 
     steps:
-      - name: Checkout sources
-        uses: actions/checkout@v6
+      - name: Checkout sources # zizmor: ignore[artipacked] actions-gh-pages pushes the docs later in this job
+        uses: actions/checkout@v6.1.0
         with:
           submodules: recursive
       - name: Install Rust nightly
-        uses: actions-rust-lang/setup-rust-toolchain@v1
+        uses: actions-rust-lang/setup-rust-toolchain@v1.17.0
         with:
           toolchain: nightly-2026-04-27
           rustflags: ""
@@ -34,7 +39,7 @@ jobs:
           -p libcosmic \
           --verbose --features tokio,winit,wayland,desktop,single-instance,applet,xdg-portal,multi-window
       - name: Deploy documentation
-        uses: peaceiris/actions-gh-pages@v4
+        uses: peaceiris/actions-gh-pages@v4.1.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./target/doc
